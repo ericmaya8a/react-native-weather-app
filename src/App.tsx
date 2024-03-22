@@ -1,11 +1,18 @@
 import { StatusBar } from "expo-status-bar";
-import { Text, View } from "react-native";
+import { SafeAreaView, View } from "react-native";
+import { BackgroundImage } from "./components/BackgroundImage";
+import { SearchInput } from "./components/SearchInput";
+import { ForecastSection } from "./components/ForecastSection";
 
 export default function App() {
   return (
-    <View className="flex-1 bg-white items-center justify-center">
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
+    <View className="flex-1">
+      <StatusBar style="light" />
+      <BackgroundImage />
+      <SafeAreaView className="flex-1">
+        <SearchInput />
+        <ForecastSection />
+      </SafeAreaView>
     </View>
   );
 }
