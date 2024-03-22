@@ -2,7 +2,7 @@ import { View, Text, Image } from "react-native";
 
 export function ForecastSection() {
   return (
-    <View className="mx-4 justify-around flex-1 mb-2">
+    <>
       <View className="flex-row justify-center items-end">
         <Text className="text-white text-center text-2xl font-bold mr-1">
           London,
@@ -27,6 +27,6 @@ export function ForecastSection() {
           Partially cloudy
         </Text>
       </View>
-    </View>
+    </>
   );
 }
