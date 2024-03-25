@@ -22,43 +22,36 @@ import { BackgroundImage } from "./components/BackgroundImage";
 import { SingleDay } from "./components/SingleDay";
 import { SingleStat } from "./components/SingleStat";
 import { weatherImages } from "./constants";
-import { useDebounce } from "./hooks";
+import { useApi, useDebounce } from "./hooks";
 import { theme } from "./theme";
 
 export default function App() {
-  const [locations, setLocations] = useState<LocationType[]>([]);
   const [showSearch, setShowSearch] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [forecast, setForecast] = useState<Forecast>();
-  const [isLoading, setIsLoading] = useState(false);
   const debouncedSearch = useDebounce(searchValue);
-  const hasData = Boolean(forecast?.forecast);
+  const loc = useApi(fetchLocations);
+  const wForecast = useApi(fetchWeatherForecast);
+  const hasData = Boolean(wForecast.data?.forecast.forecastday);
 
   useEffect(() => {
     if (!searchValue.length) {
-      setIsLoading(true);
-      fetchWeatherForecast("naucalpan")
-        .then((data) => setForecast(data))
-        .finally(() => setIsLoading(false));
+      wForecast.request("naucalpan");
     }
   }, []);
 
   useEffect(() => {
     if (debouncedSearch.length > 2) {
-      setIsLoading(true);
-      fetchLocations(debouncedSearch)
-        .then((data) => setLocations(data))
-        .finally(() => setIsLoading(false));
+      loc.request(debouncedSearch);
     } else {
-      setLocations([]);
+      loc.setData([]);
     }
   }, [debouncedSearch]);
 
   const clear = () => {
-    setLocations([]);
+    loc.setData([]);
+    // wForecast.setData(undefined);
     setSearchValue("");
     setShowSearch(false);
-    setForecast(undefined);
   };
 
   return (
@@ -93,10 +86,10 @@ export default function App() {
             </TouchableOpacity>
           </View>
 
-          {showSearch && locations.length > 0 ? (
+          {showSearch && loc.data && loc.data.length > 0 ? (
             <View className="absolute w-full bg-gray-300 top-16 rounded-3xl">
-              {locations.map((location, index) => {
-                const showBorder = locations.length !== index + 1;
+              {loc.data.map((location, index) => {
+                const showBorder = loc.data!.length !== index + 1;
                 const className = `flex-row items-center py-3 px-4 mb-1${
                   showBorder ? " border-b-2 border-gray-400" : ""
                 }`;
@@ -105,12 +98,7 @@ export default function App() {
                     key={location.id}
                     className={className}
                     onPress={() => {
-                      setIsLoading(true);
-                      fetchWeatherForecast(location.name)
-                        .then((data) => setForecast(data))
-                        .finally(() => {
-                          setIsLoading(false);
-                        });
+                      wForecast.request(location.name);
                       clear();
                     }}
                   >
@@ -125,7 +113,7 @@ export default function App() {
           ) : null}
         </View>
 
-        {isLoading ? (
+        {loc.isLoading || wForecast.isLoading ? (
           <View>
             <Text>Loading...</Text>
           </View>
@@ -134,18 +122,18 @@ export default function App() {
             <View className="justify-around flex-1 mx-8 mb-2">
               <View className="flex-row justify-center items-end">
                 <Text className="text-white text-center text-2xl font-bold mr-1">
-                  {forecast?.location.name},
+                  {wForecast.data?.location.name},
                 </Text>
                 <Text className="text-lg font-semibold text-gray-300">
-                  {forecast?.location.country}
+                  {wForecast.data?.location.country}
                 </Text>
               </View>
 
               <View className="items-center">
-                {forecast?.current.condition.text ? (
+                {wForecast.data?.current.condition.text ? (
                   <Image
                     source={
-                      weatherImages[forecast.current.condition.code] ??
+                      weatherImages[wForecast.data?.current.condition.code] ??
                       weatherImages[3742]
                     }
                     className="h-52 w-52"
@@ -155,22 +143,22 @@ export default function App() {
 
               <View className="space-y-2">
                 <Text className="text-center font-bold text-white text-6xl">
-                  {forecast?.current.temp_c}&#176;
+                  {wForecast.data?.current.temp_c}&#176;
                 </Text>
                 <Text className="text-center text-white text-xl tracking-widest">
-                  {forecast?.current.condition.text}
+                  {wForecast.data?.current.condition.text}
                 </Text>
               </View>
 
               <View className="flex-row justify-between">
                 <SingleStat imgSource={windImage}>
-                  {forecast?.current.wind_kph}km/h
+                  {wForecast.data?.current.wind_kph}km/h
                 </SingleStat>
                 <SingleStat imgSource={rainImage}>
-                  {forecast?.current.humidity}%
+                  {wForecast.data?.current.humidity}%
                 </SingleStat>
                 <SingleStat imgSource={sunImage}>
-                  {forecast?.forecast.forecastday[0].astro.sunrise}
+                  {wForecast.data?.forecast.forecastday[0].astro.sunrise}
                 </SingleStat>
               </View>
             </View>
@@ -186,7 +174,7 @@ export default function App() {
                 showsHorizontalScrollIndicator={false}
               >
                 {hasData
-                  ? forecast?.forecast.forecastday.map((day, index) => {
+                  ? wForecast.data?.forecast.forecastday.map((day, index) => {
                       return (
                         <SingleDay key={`${day.date}-${index}`} data={day} />
                       );
