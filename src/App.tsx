@@ -1,4 +1,5 @@
 import { StatusBar } from "expo-status-bar";
+import LottieView from "lottie-react-native";
 import { useEffect, useState } from "react";
 import {
   Image,
@@ -7,6 +8,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import {
@@ -18,6 +20,7 @@ import { fetchLocations, fetchWeatherForecast } from "./api/weather";
 import rainImage from "./assets/images/rain.png";
 import sunImage from "./assets/images/sun.png";
 import windImage from "./assets/images/wind.png";
+import loadingAnimation from "./assets/lottie/loading.json";
 import { BackgroundImage } from "./components/BackgroundImage";
 import { SingleDay } from "./components/SingleDay";
 import { SingleStat } from "./components/SingleStat";
@@ -26,12 +29,14 @@ import { useApi, useDebounce } from "./hooks";
 import { theme } from "./theme";
 
 export default function App() {
+  const { width } = useWindowDimensions();
   const [showSearch, setShowSearch] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue);
   const loc = useApi(fetchLocations);
   const wForecast = useApi(fetchWeatherForecast);
   const hasData = Boolean(wForecast.data?.forecast.forecastday);
+  const loadingSize = width - 30;
 
   useEffect(() => {
     if (!searchValue.length) {
@@ -114,8 +119,16 @@ export default function App() {
         </View>
 
         {loc.isLoading || wForecast.isLoading ? (
-          <View>
-            <Text>Loading...</Text>
+          <View className="flex-1 items-center justify-center">
+            <LottieView
+              autoPlay
+              loop
+              source={loadingAnimation}
+              style={{
+                width: loadingSize,
+                height: loadingSize,
+              }}
+            />
           </View>
         ) : (
           <>
