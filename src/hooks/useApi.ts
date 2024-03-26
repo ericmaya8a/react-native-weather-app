@@ -1,16 +1,18 @@
 import { useState } from "react";
 
-export function useApi<T>(apiFunc: (...args: any[]) => Promise<T | undefined>) {
+type ApiFunc<T> = (...args: any[]) => Promise<T | undefined>;
+
+export function useApi<T>(apiFunc: ApiFunc<T>) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
   const [data, setData] = useState<T>();
 
-  const clear = () => {
+  const clear: VoidFunction = () => {
     setData(undefined);
     setError(false);
   };
 
-  const request = async (...args: any[]) => {
+  const request: ApiFunc<T> = async (...args) => {
     let response: Awaited<T> | undefined;
     try {
       setIsLoading(true);
