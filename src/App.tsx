@@ -48,13 +48,13 @@ export default function App() {
     if (debouncedSearch.length > 2) {
       loc.request(debouncedSearch);
     } else {
-      loc.setData([]);
+      loc.clear();
     }
   }, [debouncedSearch]);
 
   const clear = () => {
-    loc.setData([]);
-    // wForecast.setData(undefined);
+    loc.clear();
+    // wForecast.clear();
     setSearchValue("");
     setShowSearch(false);
   };
